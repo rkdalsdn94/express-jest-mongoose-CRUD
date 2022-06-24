@@ -5,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const productController = require('./controller/product');
 
-router.get('/', productController.hello); // 미들웨어 부분을 따로 별도로 처리하는 부분
+router.get('/', productController.hello); // 미들웨어 부분을 controller/product 파일에서 처리
+router.post('/', productController.createProduct);
 
 module.exports = router;

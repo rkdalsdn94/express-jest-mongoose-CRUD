@@ -11,7 +11,7 @@ let req, res, next;
 beforeEach(() => {
   req = httpMocks.createRequest();
   res = httpMocks.createResponse();
-  next = null;
+  next = jest.fn();
 });
 
 describe('Product Controller Create', () => {
@@ -23,20 +23,30 @@ describe('Product Controller Create', () => {
     expect(typeof productController.createProduct).toBe('function');
   });
 
-  it('should call ProductModel.create', () => {
+  it('should call ProductModel.create 프로덕트 모델의 create함수 호출 테스트', () => {
     productController.createProduct(req, res, next);
     expect(productModel.create).toBeCalledWith(newProduct);
   });
 
-  it('should return 201 response code', () => {
-    productController.createProduct(req, res, next);
+  it('should return 201 response code', async () => {
+    await productController.createProduct(req, res, next);
     expect(res.statusCode).toBe(201);
     expect(res._isEndCalled()).toBeTruthy();
   });
 
-  it('should return json body in response', () => {
+  it('should return json body in response', async () => {
     productModel.create.mockReturnValue(newProduct);
-    productController.createProduct(req, res, next);
+    await productController.createProduct(req, res, next);
     expect(res._getJSONData()).toStrictEqual(newProduct);
+  });
+
+  it('should handle errors', async () => {
+    const errorMessage = { message: '필수 값이 없습니다.' };
+    const rejectedPromise = Promise.reject(errorMessage);
+
+    productModel.create.mockReturnValue(rejectedPromise);
+    await productController.createProduct(req, res, next);
+
+    expect(next).toBeCalledWith(errorMessage);
   });
 });
