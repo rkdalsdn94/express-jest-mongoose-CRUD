@@ -10,6 +10,7 @@ productModel.create = jest.fn();
 productModel.find = jest.fn();
 productModel.findById = jest.fn();
 productModel.findByIdAndUpdate = jest.fn();
+productModel.findByIdAndDelete = jest.fn();
 
 const productId = 'testProductId';
 const updatedProduct = {
@@ -182,6 +183,52 @@ describe('Product Controller Update', () => {
 
     productModel.findByIdAndUpdate.mockReturnValue(rejectedPromise);
     await productController.updateProduct(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(errorMessage);
+  });
+});
+
+describe('Product Controller Delete', () => {
+  it('deleteProduct 메소드가 함수인지?', () => {
+    expect(typeof productController.deleteProduct).toBe('function');
+  });
+
+  it('ProductModel.findByIdAndDelete 호출', async () => {
+    req.params.productId = productId;
+
+    await productController.deleteProduct(req, res, next);
+
+    expect(productModel.findByIdAndDelete);
+  });
+
+  it('ProductModel.findByIdAndDelete 성공시 상태값 200 리턴받기', async () => {
+    let deletedProduct = {
+      name: 'deletedProduct',
+      description: 'it is deleted',
+    };
+
+    productModel.findByIdAndDelete.mockReturnValue(deletedProduct);
+    await productController.deleteProduct(req, res, next);
+
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData()).toStrictEqual(deletedProduct);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
+
+  it('삭제할 제품이 없으면 404 리턴', async () => {
+    productModel.findByIdAndDelete.mockReturnValue(null);
+    await productController.deleteProduct(req, res, next);
+
+    expect(res.statusCode).toBe(404);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
+
+  it('데이터를 삭제할 때 에러가 날 경우 500 리턴', async () => {
+    const errorMessage = { message: 'Error delete' };
+    const rejectedPromise = Promise.reject(errorMessage);
+
+    productModel.findByIdAndDelete.mockReturnValue(rejectedPromise);
+    await productController.deleteProduct(req, res, next);
 
     expect(next).toHaveBeenCalledWith(errorMessage);
   });
