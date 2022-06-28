@@ -4,6 +4,7 @@ const app = require('../../server');
 const newProduct = require('../data/new-product.json');
 
 let firstProduct;
+let lastProduct;
 
 it('POST /api/products', async () => {
   const response = await request(app).post('/api/products').send(newProduct);
@@ -36,6 +37,7 @@ it('GET /api/products', async () => {
   expect(response.body[0].name).toBeDefined();
   expect(response.body[0].description).toBeDefined();
   firstProduct = response.body[0];
+  lastProduct = response.body.at(-1); // 삭제하기 위해 제일 마지막 데이터 추가로 받음
 });
 
 it('GET /api/product/:productId', async () => {
@@ -74,6 +76,21 @@ it('should return 404 on PUT /api/products', async () => {
   const res = await request(app)
     .put('/api/products' + '62b591e8e6594ed2c51bc021')
     .send({ name: 'updated name', description: 'updated description' });
+
+  expect(res.statusCode).toBe(404);
+});
+
+it('DELETE /api/products', async () => {
+  const res = await request(app)
+    .delete('/api/products/' + lastProduct._id)
+    .send();
+  expect(res.statusCode).toBe(200);
+});
+
+it('DELETE 하려는 id가 없을 경우 /api/products/:productId', async () => {
+  const res = await request(app)
+    .delete('/api/products/' + lastProduct._id)
+    .send();
 
   expect(res.statusCode).toBe(404);
 });
