@@ -9,9 +9,15 @@ const allProducts = require('../data/all-products.json');
 productModel.create = jest.fn();
 productModel.find = jest.fn();
 productModel.findById = jest.fn();
-const productId = '62bac1073ecaabb87d4c20d3';
+productModel.findByIdAndUpdate = jest.fn();
 
+const productId = 'testProductId';
+const updatedProduct = {
+  name: 'update name',
+  description: 'update description',
+};
 let req, res, next;
+
 beforeEach(() => {
   req = httpMocks.createRequest();
   res = httpMocks.createResponse();
@@ -124,6 +130,59 @@ describe('Product Controller GetByID', () => {
 
     productModel.findById.mockReturnValue(rejectedPromise);
     await productController.getProductById(req, res, next);
+    expect(next).toHaveBeenCalledWith(errorMessage);
+  });
+});
+
+describe('Product Controller Update', () => {
+  it('should have an updateProduct function', () => {
+    expect(typeof productController.updateProduct).toBe('function');
+  });
+
+  it('should call productModel.findByIdAndUpdate', async () => {
+    req.params.productId = productId;
+    req.body = updatedProduct;
+    await productController.updateProduct(req, res, next);
+
+    // expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith( // 몽고DB에선 아래와 같은 값이 필요하다
+    //   req.params.productId,
+    //   req.body,
+    //   { new: true });
+
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      productId,
+      updatedProduct,
+      { new: true }
+    );
+  });
+
+  it('should return json body and response code 200', async () => {
+    req.params.productId = productId;
+    req.body = updatedProduct;
+    productModel.findByIdAndUpdate.mockReturnValue(updatedProduct);
+
+    await productController.updateProduct(req, res, next);
+
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData()).toStrictEqual(updatedProduct);
+  });
+
+  it("should handle 404 when item doesn't  exist", async () => {
+    productModel.findByIdAndUpdate.mockReturnValue(null);
+    await productController.updateProduct(req, res, next);
+
+    expect(res.statusCode).toBe(404);
+    expect(res._isEndCalled()).toBeTruthy();
+  });
+
+  it('should handle errors', async () => {
+    const errorMessage = { message: 'error' };
+    const rejectedPromise = Promise.reject(errorMessage);
+
+    productModel.findByIdAndUpdate.mockReturnValue(rejectedPromise);
+    await productController.updateProduct(req, res, next);
+
     expect(next).toHaveBeenCalledWith(errorMessage);
   });
 });
