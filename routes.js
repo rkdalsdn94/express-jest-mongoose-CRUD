@@ -9,5 +9,6 @@ router.get('/hello', productController.hello); // 미들웨어 부분을 control
 router.post('/', productController.createProduct);
 router.get('/', productController.getProducts);
 router.get('/:productId', productController.getProductById);
+router.put('/:productId', productController.updateProduct);
 
 module.exports = router;
