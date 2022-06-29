@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 
-const PORT = 5001;
+const PORT = process.env.PORT;
 const app = express();
 const productRoutes = require('./routes'); // 라우팅 처리
 
